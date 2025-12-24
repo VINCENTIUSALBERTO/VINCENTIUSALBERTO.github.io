@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Registrasi</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .password-strength {
+            margin-top: 5px;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .strength-bar {
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+
+        .strength-fill {
+            height: 100%;
+            width: 0%;
+            transition: width 0.3s, background-color 0.3s;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .message {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-size: 14px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .requirements {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .requirement {
+            margin: 8px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .requirement.met {
+            color: #28a745;
+        }
+
+        .check {
+            margin-right: 8px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Daftar</h1>
+        <p class="subtitle">Buat akun baru Anda</p>
+
+        <div class="message" id="message"></div>
+
+        <form id="registerForm" onsubmit="handleRegister(event)">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="Masukkan username" required>
+                <small style="color: #999;">Minimal 3 karakter</small>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="Masukkan email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="Masukkan password" required oninput="checkPasswordStrength()">
+                <div class="password-strength">
+                    <div class="strength-bar">
+                        <div class="strength-fill" id="strengthFill"></div>
+                    </div>
+                    <span id="strengthText">Password strength: -</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Konfirmasi Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" placeholder="Konfirmasi password" required>
+            </div>
+
+            <div class="requirements">
+                <div class="requirement" id="req-length">
+                    <span class="check">✓</span> Minimal 8 karakter
+                </div>
+                <div class="requirement" id="req-number">
+                    <span class="check">✓</span> Mengandung angka
+                </div>
+                <div class="requirement" id="req-match">
+                    <span class="check">✓</span> Password cocok
+                </div>
+            </div>
+
+            <button type="submit" class="btn">Daftar</button>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <span>Memproses...</span>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function checkPasswordStrength() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            const fill = document.getElementById('strengthFill');
+            const text = document.getElementById('strengthText');
+            const reqLength = document.getElementById('req-length');
+            const reqNumber = document.getElementById('req-number');
+            const reqMatch = document.getElementById('req-match');
+
+            let strength = 0;
+            let met = 0;
+
+            // Cek panjang
+            if (password.length >= 8) {
+                strength += 33;
+                reqLength.classList.add('met');
+                met++;
+            } else {
+                reqLength.classList.remove('met');
+            }
+
+            // Cek angka
+            if (/\d/.test(password)) {
+                strength += 33;
+                reqNumber.classList.add('met');
+                met++;
+            } else {
+                reqNumber.classList.remove('met');
+            }
+
+            // Cek kecocokan
+            if (password && password === confirmPassword) {
+                strength += 34;
+                reqMatch.classList.add('met');
+                met++;
+            } else {
+                reqMatch.classList.remove('met');
+            }
+
+            fill.style.width = strength + '%';
+
+            if (strength < 34) {
+                fill.style.backgroundColor = '#dc3545';
+                text.textContent = 'Password strength: Lemah';
+            } else if (strength < 67) {
+                fill.style.backgroundColor = '#ffc107';
+                text.textContent = 'Password strength: Sedang';
+            } else {
+                fill.style.backgroundColor = '#28a745';
+                text.textContent = 'Password strength: Kuat';
+            }
+        }
+
+        async function handleRegister(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+
+            const messageDiv = document.getElementById('message');
+            const loading = document.getElementById('loading');
+            const btn = document.querySelector('.btn');
+
+            messageDiv.style.display = 'none';
+            loading.style.display = 'block';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password,
+                        confirm_password: confirmPassword
+                    })
+                });
+
+                const data = await response.json();
+
+                loading.style.display = 'none';
+                btn.disabled = false;
+
+                if (response.ok) {
+                    messageDiv.className = 'message success';
+                    messageDiv.textContent = data.message;
+                    document.getElementById('registerForm').reset();
+                    document.getElementById('strengthFill').style.width = '0%';
+                    setTimeout(() => {
+                        messageDiv.style.display = 'none';
+                    }, 5000);
+                } else {
+                    messageDiv.className = 'message error';
+                    messageDiv.textContent = data.message;
+                }
+            } catch (error) {
+                loading.style.display = 'none';
+                btn.disabled = false;
+                messageDiv.className = 'message error';
+                messageDiv.textContent = 'Terjadi kesalahan: ' + error.message;
+            }
+        }
+
+        // Monitor perubahan password saat input
+        document.getElementById('password').addEventListener('input', checkPasswordStrength);
+        document.getElementById('confirm_password').addEventListener('input', checkPasswordStrength);
+    </script>
+</body>
+</html>
